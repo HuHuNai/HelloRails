@@ -1,68 +1,124 @@
-<p style="color: green"><%= notice %></p>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <style>
+      body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        table {
+              border-collapse: collapse;
+              width: 50%; 
+              border: 1px solid #0f5132;
+        }
+        th, td {
+            text-align: center; 
+            border: 1px solid #0f5132;
+        }
+        th {
+            cursor: pointer; 
+            position: relative;
+        }
+        .sorted-column {
+            background-color: #d1e7dd; 
+            color: #0f5132; 
+        }
+        .sort-indicator {
+            position: absolute;
+            right: 5%; 
+            top: 50%;
+            transform: translateY(-50%);
+            width: 0;
+            height: 0;
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+        }
+        .asc {
+            border-bottom: 5px solid #0f5132; 
+        }
+        .desc {
+            border-top: 5px solid #0f5132;
+        }
+        .highlighted {
+            background-color: #d1e7dd; 
+            color: #0f5132; 
+        }
+    </style>
+</head>
+<body>
+    <h1>Movies</h1>
 
-<% content_for :title, "Movies" %>
+    <table id="movies" sortby="null" order="asc">
+        <thead>
+            <tr>
+                <th onclick="sort(1)">Title</th>
+                <th onclick="sort(2)">Rating</th>
+                <th onclick="sort(3)">Release Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% @movies.each do |movie| %>
+                <tr>
+                    <td><%= link_to movie.title, movie_path(movie) %></td>
+                    <td><%= movie.rating %></td>
+                    <td><%= movie.release_date.strftime("%B %d, %Y") %></td>
+                </tr>
+            <% end %>
+        </tbody>
+    </table>
 
-<h1>Movies</h1>
+    <script>
+        function sort(sortby) {
+            const table = document.getElementById('movies');
+            const rows = Array.from(table.querySelector('tbody').querySelectorAll('tr'));
 
-<table id = "movies" sortby = "null" order = "asc">
-  <thead>
-    <tr>
-      <th onclick="sort(1)">Title</th>
-      <th onclick="sort(2)">Rating</th>
-      <th onclick="sort(3)">Release Date</th>
-    </tr>
-  </thead>
-  <tbody>
-    <% @movies.each do |movie| %>
-      <tr>
-        <td><%= movie.title %></td>
-        <td><%= movie.rating %></td>
-        <td><%= movie.release_date %></td>
-      </tr>
-    <% end %>
-  </tbody>
-</table>
+            let order = table.getAttribute('order');
+            if (table.getAttribute('sortby') == sortby) {
+                order = order === 'asc' ? 'desc' : 'asc';
+            } else {
+                order = 'asc';
+            }
 
-<script>
-  function sort(sortby){
-    const table = document.getElementById('moviesTable');
-    const rows = Array.from(table.querySelector('tbody').querySelectorAll('tr'));
+            rows.sort((a, b) => {
+                const elementA = a.querySelector(`td:nth-child(${sortby})`).innerText;
+                const elementB = b.querySelector(`td:nth-child(${sortby})`).innerText;
 
-    let order = table.getAttribute('order');
-    if (table.getAttribute('sortby')==sortby){
-      order = order == 'asc'? 'desc' : 'asc';
-    }
-    else{
-      order = 'asc'
-    }
-    rows.sort((a, b) => {
-      const elementA = a.querySelector(`td:nth-child(${sortby})`).innerText;
-      const elementB = b.querySelector(`td:nth-child(${sortby})`).innerText;
-      
-      if (order === 'asc') {
-        return elementA.localeCompare(elementB, undefined, { numeric: true });
-      } else {
-        return elementB.localeCompare(elementA, undefined, { numeric: true });
-      }
-    });
-    
-    const newBody = document.createElement('tbody');
-    rows.forEach(row => newBody.appendChild(row));
+                if (order === 'asc') {
+                    return elementA.localeCompare(elementB, undefined, { numeric: true });
+                } else {
+                    return elementB.localeCompare(elementA, undefined, { numeric: true });
+                }
+            });
 
-    table.replaceChild(newBody,table.querySelector('tbody'));
+            const newBody = document.createElement('tbody');
+            rows.forEach(row => newBody.appendChild(row));
 
-    table.setAttribute('sortby', sortby);
-    table.setAttribute('order', order);
-  }
-</script>
+            
 
-<!-- <div id="movies">
-  <% @movies.each do |movie| %>
-    <%= render movie %>
-    <p>
-      <%= link_to "Show this movie", movie %>
-    </p>
-  <% end %>
-</div>
+            table.setAttribute('sortby', sortby);
+            table.setAttribute('order', order);
 
-<%= link_to "New movie", new_movie_path %> -->
+            const headers = table.querySelectorAll("th");
+            newBody.querySelectorAll('td').forEach(cell => cell.classList.remove('highlighted'));
+            headers.forEach((header, index) => {
+                header.classList.remove('sorted-column'); 
+                header.querySelector('.sort-indicator')?.remove();
+
+                if (index === sortby - 1) {
+                    header.classList.add('sorted-column'); 
+                    const indicator = document.createElement('span');
+                    indicator.classList.add('sort-indicator');
+                    indicator.classList.add(order === 'asc' ? 'asc' : 'desc');
+                    header.appendChild(indicator);
+                    newBody.querySelectorAll(`td:nth-child(${sortby})`).forEach(cell => {
+                        cell.classList.add('highlighted');
+                    });
+                }
+            });
+            table.replaceChild(newBody, table.querySelector('tbody'));
+        }
+    </script>
+</body>
+</html>
