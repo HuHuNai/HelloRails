@@ -4,7 +4,59 @@
 
 <h1>Movies</h1>
 
-<div id="movies">
+<table id = "movies" sortby = "null" order = "asc">
+  <thead>
+    <tr>
+      <th onclick="sort(1)">Title</th>
+      <th onclick="sort(2)">Rating</th>
+      <th onclick="sort(3)">Release Date</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% @movies.each do |movie| %>
+      <tr>
+        <td><%= movie.title %></td>
+        <td><%= movie.rating %></td>
+        <td><%= movie.release_date %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<script>
+  function sort(sortby){
+    const table = document.getElementById('moviesTable');
+    const rows = Array.from(table.querySelector('tbody').querySelectorAll('tr'));
+
+    let order = table.getAttribute('order');
+    if (table.getAttribute('sortby')==sortby){
+      order = order == 'asc'? 'desc' : 'asc';
+    }
+    else{
+      order = 'asc'
+    }
+    rows.sort((a, b) => {
+      const elementA = a.querySelector(`td:nth-child(${sortby})`).innerText;
+      const elementB = b.querySelector(`td:nth-child(${sortby})`).innerText;
+      
+      if (order === 'asc') {
+        return elementA.localeCompare(elementB, undefined, { numeric: true });
+      } else {
+        return elementB.localeCompare(elementA, undefined, { numeric: true });
+      }
+    });
+    
+    const newBody = document.createElement('tbody');
+    rows.forEach(row => newBody.appendChild(row));
+
+    table.replaceChild(newBody,table.querySelector('tbody'));
+
+    table.setAttribute('sortby', sortby);
+    table.setAttribute('order', order);
+  }
+</script>
+
+<!-- <div id="movies">
   <% @movies.each do |movie| %>
     <%= render movie %>
     <p>
@@ -13,4 +65,4 @@
   <% end %>
 </div>
 
-<%= link_to "New movie", new_movie_path %>
+<%= link_to "New movie", new_movie_path %> -->
